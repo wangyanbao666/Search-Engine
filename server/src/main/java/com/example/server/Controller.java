@@ -17,6 +17,6 @@ public class Controller {
     public void getResult(@RequestParam String query) throws IOException {
 
         ArrayList result = service.getResult(query);
-        
+
     }
 }
