@@ -184,7 +184,7 @@ public class Main {
 
     public void crawl(int num) throws ParserException, IOException, ParseException, java.text.ParseException {
 //        todo: check the update time, get the title
-        while (!queue.isEmpty() && urlIndex<num){
+        while (!queue.isEmpty() && (urlIndex<num || num<=0)){
             String url = queue.get(0);
             queue.remove(0);
 //            parse the url to get the modification date and content length
@@ -317,8 +317,12 @@ public class Main {
                 if (parentLinks.get(link) == null){
                     parentLinks.put(link, new ArrayList<>());
                 }
-                if (!((ArrayList) parentLinks.get(link)).contains(index)){
-                    ((ArrayList) parentLinks.get(link)).add(index);
+                ArrayList current = ((ArrayList) parentLinks.get(link));
+                if (!current.contains(index)){
+                    current.add(index);
+                    System.out.println(link);
+                    System.out.println(current);
+                    parentLinks.put(link, current);
                 }
             }
         }
@@ -501,7 +505,6 @@ public class Main {
         m.calculateWordWeight();
 //        m.clearAll();
         m.finish();
-
 
     }
 }

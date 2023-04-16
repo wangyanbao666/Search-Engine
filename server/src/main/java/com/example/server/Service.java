@@ -24,6 +24,8 @@ public class Service {
 //   return an arraylist ordered by score (desc)
         HTree pageInfo = repository.getPageInfo();
         HTree idUrl = repository.getIdUrl();
+        HTree subLinks = repository.getSubLink();
+        HTree parentLinks = repository.getParentLink();
         HTree wordsTfIdf = repository.getWordTfIdf();
         HTree phrase2TfIdf = repository.getPhrase2TfIdf();
         HTree phrase3TfIdf = repository.getPhrase3TfIdf();
@@ -128,11 +130,22 @@ public class Service {
 //        sort the arrayList based on the score
         ArrayList<Integer> keys = new ArrayList<>(scores.keySet());
         Collections.sort(keys, Comparator.comparing(scores::get));
+        Collections.reverse(keys);
 
         ArrayList<Hashtable> result = new ArrayList();
         for (int urlId: keys){
+            ArrayList<String> sublinks = new ArrayList<String>((Vector)subLinks.get(urlId));
+            String link = (String) idUrl.get(urlId);
+            ArrayList<Integer> parentlinksid = (ArrayList<Integer>) parentLinks.get(link);
+            ArrayList<String> parentlinks = new ArrayList<String>();
+            for (int id: parentlinksid){
+                parentlinks.add((String) idUrl.get(id));
+            }
             Hashtable page = (Hashtable) pageInfo.get(urlId);
             page.put("url", idUrl.get(urlId));
+            page.put("sublinks", sublinks);
+            page.put("parentlinks", parentlinks);
+            page.put("score", scores.get(urlId));
             result.add(page);
         }
         return result;
@@ -145,16 +158,16 @@ public class Service {
         ArrayList phrase2 = (ArrayList) texts.get("phrase2");
         ArrayList phrase3 = (ArrayList) texts.get("phrase3");
         ArrayList<Hashtable> topMatch = calculateScore(words, phrase2, phrase3, query);
-        for (Hashtable info: topMatch){
-            System.out.println(info);
-        }
+//        for (Hashtable info: topMatch){
+//            System.out.println(info);
+//        }
         return topMatch;
     }
 
     private Hashtable getArrays(String query){
         ArrayList words = new ArrayList();
-        String processedQuery = query.replaceAll("\\P{Alnum}", " ");
-        String[] rowWords = processedQuery.split(" ");
+//        String processedQuery = query.replaceAll("\\P{Alnum}", " ");
+        String[] rowWords = query.split(" ");
         for (String word: rowWords){
             word = stemmer.stem(word);
             if (word.length() > 0){ words.add(word); }
@@ -170,8 +183,16 @@ public class Service {
 
     private int checkMatch(ArrayList<String > words, String title){
         int count = 0;
+//        String processedTitle = title.replaceAll("\\P{Alnum}", " ");
+        String[] rowWords = title.split(" ");
+        ArrayList<String> processedWords = new ArrayList();
+        for (String word: rowWords){
+            word = stemmer.stem(word);
+            if (word.length() > 0){ processedWords.add(word); }
+        }
+        String processedTitle2 = String.join(" ", processedWords);
         for (String word: words){
-            if (title.contains(word)){
+            if (processedTitle2.contains(word)){
                 count++;
             }
         }

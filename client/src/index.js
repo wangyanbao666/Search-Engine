@@ -1,36 +1,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.css';
-import './searchBar.css'
+import './css/index.css';
+import './css/searchBar.css'
+import './css/block.css'
+import './css/expandList.css'
 import App from './App';
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route
- } from "react-router-dom";
 import reportWebVitals from './reportWebVitals';
-import Results from './components/results';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
-const sample = [
-  {
-    title: "ttt",
-    url: "uuu",
-  },
-  {
-    title: "eee",
-    url: "lll",
-  },
 
-]
 root.render(
   <React.StrictMode>
-    <Router>
-      <Routes>
-        <Route path="/" element={<App />} />
-        <Route path="/result" element={<Results results={sample}/>} />
-      </Routes>
-    </Router>
+    <App></App>
   </React.StrictMode>
 );
 

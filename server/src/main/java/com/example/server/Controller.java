@@ -14,9 +14,9 @@ public class Controller {
 
     @RequestMapping(value = "/api/results", method = RequestMethod.POST)
     @ResponseBody
-    public void getResult(@RequestParam String query) throws IOException {
+    public ArrayList getResult(@RequestParam String query) throws IOException {
 
         ArrayList result = service.getResult(query);
-
+        return result;
     }
 }

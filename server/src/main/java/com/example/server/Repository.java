@@ -45,6 +45,13 @@ public class Repository {
     public HTree getDocPhrase3TfIdf() {
         return docPhrase3TfIdf;
     }
+    public HTree getSubLink() {
+        return subLink;
+    }
+
+    public HTree getParentLink() {
+        return parentLink;
+    }
 
     private HTree wordTfIdf;
     private HTree phrase2TfIdf;
@@ -55,6 +62,8 @@ public class Repository {
     private HTree docWordTfIdf;
     private HTree docPhrase2TfIdf;
     private HTree docPhrase3TfIdf;
+    private HTree subLink;
+    private HTree parentLink;
     private RecordManager recman;
 
 
@@ -69,6 +78,8 @@ public class Repository {
         docPhrase2TfIdf = loadHTree("docPhrase2TfIdf");
         docPhrase3TfIdf = loadHTree("docPhrase3TfIdf");
         pageInfo = loadHTree("pageInfo");
+        subLink = loadHTree("subLinks");
+        parentLink = loadHTree("parentLinks");
     }
 
     public HTree loadHTree(String objectname) throws Exception {
