@@ -30,8 +30,8 @@ public class Service {
         HTree phrase2TfIdf = repository.getPhrase2TfIdf();
         HTree phrase3TfIdf = repository.getPhrase3TfIdf();
         HTree docWordTfIdf = repository.getDocWordTfIdf();
-        HTree docPhrase2TfIdf = repository.getPhrase2TfIdf();
-        HTree docPhrase3TfIdf = repository.getPhrase3TfIdf();
+        HTree docPhrase2TfIdf = repository.getDocPhrase2TfIdf();
+        HTree docPhrase3TfIdf = repository.getDocPhrase3TfIdf();
         Hashtable<Object, Object> wordCount = new Hashtable<>();
         Hashtable phrase2Count = new Hashtable<>();
         Hashtable phrase3Count = new Hashtable<>();
@@ -49,11 +49,11 @@ public class Service {
             phrase3Count.put(word, (int)phrase3Count.get(word)+1);
         }
 
-//        FastIterator it = docWordTfIdf.keys();
+//        FastIterator it = docPhrase2TfIdf.keys();
 //        Object key;
 //        while ((key = it.next())!=null){
 //            System.out.println(key);
-//            System.out.println(docWordTfIdf.get(key));
+//            System.out.println(docPhrase2TfIdf.get(key));
 //        }
 
 //       an arraylist that contains all documents that contain any word in the query
@@ -82,12 +82,12 @@ public class Service {
             int count2 = checkMatch(phrase2, title);
             int count3 = checkMatch(phrase3, title);
             if (count3 > 0){
-                partialScore = 5000;
+                partialScore = 500;
             } else if (count2 > 0) {
-                partialScore = 4000;
+                partialScore = 300;
             }
             else if (count > 0){
-                partialScore = 2000;
+                partialScore = 100;
             }
             totalScore += partialScore;
 
@@ -120,11 +120,67 @@ public class Service {
             singleWordPartialScore = weightSum / (Math.sqrt(sumSquareQ)*Math.sqrt(sumSquareD)) * 500;
             totalScore += singleWordPartialScore;
 
-            scores.put(urlId, totalScore);
-
             //        3. calculate 2-word-phrase similarity
+            Hashtable thisDocPhrase2TfIdf = (Hashtable) docPhrase2TfIdf.get(urlId);
+//            cos similarity, needs all weights in a doc
+            double phrase2SumSquareD = 0;
+//            all weights in the query (the number of appearance of a word)
+            double phrase2SumSquareQ = 0;
+            Set docPhrase2Set = thisDocPhrase2TfIdf.keySet();
+//            calculate sum of all squared weights in a doc
+            for (Object p2: docPhrase2Set){
+                phrase2SumSquareD += ((double) thisDocPhrase2TfIdf.get(p2))*((double) thisDocPhrase2TfIdf.get(p2));
+            }
+            double phrase2PartialScore = 0;
+            double phrase2WeightSum = 0;
+            for (String p2: phrase2){
+                if (phrase2TfIdf.get(p2) != null){
+                    int countInQuery = (int) phrase2Count.get(p2);
+                    phrase2SumSquareQ += countInQuery*countInQuery;
+                    double weight = 0;
+                    Hashtable phrase2Info = (Hashtable) phrase2TfIdf.get(p2);
+                    if (phrase2Info.get(urlId) != null){
+                        weight = (double) phrase2Info.get(urlId);
+                    }
+                    System.out.println(phrase2+": "+countInQuery);
+                    phrase2WeightSum += countInQuery * weight;
+                }
+            }
+            if (phrase2WeightSum != 0){
+                phrase2PartialScore = phrase2WeightSum / (Math.sqrt(phrase2SumSquareQ)*Math.sqrt(phrase2SumSquareD)) * 1000;
+                totalScore += phrase2PartialScore;
+            }
 
             //        4. calculate 3-word-phrase similarity
+            Hashtable thisDocPhrase3TfIdf = (Hashtable) docPhrase3TfIdf.get(urlId);
+//            cos similarity, needs all weights in a doc
+            double phrase3SumSquareD = 0;
+//            all weights in the query (the number of appearance of a word)
+            double phrase3SumSquareQ = 0;
+            Set docPhrase3Set = thisDocPhrase3TfIdf.keySet();
+//            calculate sum of all squared weights in a doc
+            for (Object p3: docPhrase3Set){
+                phrase3SumSquareD += ((double) thisDocPhrase3TfIdf.get(p3))*((double) thisDocPhrase3TfIdf.get(p3));
+            }
+            double phrase3PartialScore = 0;
+            double phrase3WeightSum = 0;
+            for (String p3: phrase3){
+                if (phrase3TfIdf.get(p3) != null){
+                    int countInQuery = (int) phrase3Count.get(p3);
+                    phrase3SumSquareQ += countInQuery*countInQuery;
+                    double weight = 0;
+                    Hashtable phrase3Info = (Hashtable) phrase3TfIdf.get(p3);
+                    if (phrase3Info.get(urlId) != null){
+                        weight = (double) phrase3Info.get(urlId);
+                    }
+                    phrase3WeightSum += countInQuery * weight;
+                }
+            }
+            if (phrase3WeightSum != 0){
+                phrase3PartialScore = phrase3WeightSum / (Math.sqrt(phrase3SumSquareQ)*Math.sqrt(phrase3SumSquareD)) * 2000;
+                totalScore += phrase3PartialScore;
+            }
+            scores.put(urlId, totalScore);
         }
 
 //        sort the arrayList based on the score
