@@ -14,20 +14,6 @@ export default function SearchBar({ className }){
         let query = searchBar.value
         // console.log(query)
         $.post("http://localhost:8080/api/results", {query: query}, function(data){
-            const info = [
-                {
-                    title: "ttt",
-                    url: "url"
-                }, 
-                {
-                    title: "hkust",
-                    url: "hkust url"
-                },
-                {
-                    title: query,
-                    url: "none"
-                }
-            ]
             setData(data)
             navigate("/result")
         })
