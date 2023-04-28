@@ -8,10 +8,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @org.springframework.stereotype.Service
 public class Service {
-
     private final Repository repository;
     private StopStem stemmer;
     @Autowired
@@ -26,6 +27,7 @@ public class Service {
         HTree idUrl = repository.getIdUrl();
         HTree subLinks = repository.getSubLink();
         HTree parentLinks = repository.getParentLink();
+        HTree forwardIndex = repository.getForwardIndex();
         HTree wordsTfIdf = repository.getWordTfIdf();
         HTree phrase2TfIdf = repository.getPhrase2TfIdf();
         HTree phrase3TfIdf = repository.getPhrase3TfIdf();
@@ -33,6 +35,7 @@ public class Service {
         HTree docPhrase2TfIdf = repository.getDocPhrase2TfIdf();
         HTree docPhrase3TfIdf = repository.getDocPhrase3TfIdf();
         Hashtable<Object, Object> wordCount = new Hashtable<>();
+        HTree idWord = repository.getIdWord();
         Hashtable phrase2Count = new Hashtable<>();
         Hashtable phrase3Count = new Hashtable<>();
 
@@ -62,6 +65,30 @@ public class Service {
             Hashtable wordInfo = (Hashtable) wordsTfIdf.get(word);
             if (wordInfo != null){
                 Iterator iter = wordInfo.keySet().iterator();
+                while (iter.hasNext()){
+                    int docId = (int) iter.next();
+                    if (!al.contains(docId)){
+                        al.add(docId);
+                    }
+                }
+            }
+        }
+        for (String phrase: phrase2){
+            Hashtable phraseInfo = (Hashtable) phrase2TfIdf.get(phrase);
+            if (phraseInfo != null){
+                Iterator iter = phraseInfo.keySet().iterator();
+                while (iter.hasNext()){
+                    int docId = (int) iter.next();
+                    if (!al.contains(docId)){
+                        al.add(docId);
+                    }
+                }
+            }
+        }
+        for (String phrase: phrase3){
+            Hashtable phraseInfo = (Hashtable) phrase3TfIdf.get(phrase);
+            if (phraseInfo != null){
+                Iterator iter = phraseInfo.keySet().iterator();
                 while (iter.hasNext()){
                     int docId = (int) iter.next();
                     if (!al.contains(docId)){
@@ -113,12 +140,14 @@ public class Service {
                     if (wordInfo.get(urlId) != null){
                         weight = (double) wordInfo.get(urlId);
                     }
-                    System.out.println(word+": "+countInQuery);
+//                    System.out.println(word+": "+countInQuery);
                     weightSum += countInQuery * weight;
                 }
             }
-            singleWordPartialScore = weightSum / (Math.sqrt(sumSquareQ)*Math.sqrt(sumSquareD)) * 500;
-            totalScore += singleWordPartialScore;
+            if (weightSum != 0) {
+                singleWordPartialScore = weightSum / (Math.sqrt(sumSquareQ)*Math.sqrt(sumSquareD)) * 500;
+                totalScore += singleWordPartialScore;
+            }
 
             //        3. calculate 2-word-phrase similarity
             Hashtable thisDocPhrase2TfIdf = (Hashtable) docPhrase2TfIdf.get(urlId);
@@ -142,12 +171,12 @@ public class Service {
                     if (phrase2Info.get(urlId) != null){
                         weight = (double) phrase2Info.get(urlId);
                     }
-                    System.out.println(phrase2+": "+countInQuery);
                     phrase2WeightSum += countInQuery * weight;
                 }
             }
+
             if (phrase2WeightSum != 0){
-                phrase2PartialScore = phrase2WeightSum / (Math.sqrt(phrase2SumSquareQ)*Math.sqrt(phrase2SumSquareD)) * 1000;
+                phrase2PartialScore = phrase2WeightSum / (Math.sqrt(phrase2SumSquareQ)*Math.sqrt(phrase2SumSquareD)) * 10000;
                 totalScore += phrase2PartialScore;
             }
 
@@ -177,7 +206,7 @@ public class Service {
                 }
             }
             if (phrase3WeightSum != 0){
-                phrase3PartialScore = phrase3WeightSum / (Math.sqrt(phrase3SumSquareQ)*Math.sqrt(phrase3SumSquareD)) * 2000;
+                phrase3PartialScore = phrase3WeightSum / (Math.sqrt(phrase3SumSquareQ)*Math.sqrt(phrase3SumSquareD)) * 20000;
                 totalScore += phrase3PartialScore;
             }
             scores.put(urlId, totalScore);
@@ -188,8 +217,21 @@ public class Service {
         Collections.sort(keys, Comparator.comparing(scores::get));
         Collections.reverse(keys);
 
+
         ArrayList<Hashtable> result = new ArrayList();
         for (int urlId: keys){
+            //        get words count
+            Hashtable<Integer,Integer> wordsCount = (Hashtable) forwardIndex.get(urlId);
+            ArrayList<Integer> wordList = new ArrayList<>(wordsCount.keySet());
+            Collections.sort(wordList, Comparator.comparing(wordsCount::get));
+            Collections.reverse(wordList);
+            ArrayList keywords = new ArrayList();
+            for (int i=0;i<Math.min(5,wordList.size());i++){
+                int id = wordList.get(i);
+                String word = (String) idWord.get(id);
+                keywords.add(String.format("%s: %d",word,wordsCount.get(id)));
+            }
+            System.out.println(keywords);
             ArrayList<String> sublinks = new ArrayList<String>((Vector)subLinks.get(urlId));
             String link = (String) idUrl.get(urlId);
             ArrayList<Integer> parentlinksid = (ArrayList<Integer>) parentLinks.get(link);
@@ -202,6 +244,7 @@ public class Service {
             page.put("sublinks", sublinks);
             page.put("parentlinks", parentlinks);
             page.put("score", scores.get(urlId));
+            page.put("keywords", keywords);
             result.add(page);
         }
         return result;
@@ -222,14 +265,53 @@ public class Service {
 
     private Hashtable getArrays(String query){
         ArrayList words = new ArrayList();
-//        String processedQuery = query.replaceAll("\\P{Alnum}", " ");
-        String[] rowWords = query.split(" ");
-        for (String word: rowWords){
-            word = stemmer.stem(word);
-            if (word.length() > 0){ words.add(word); }
+        ArrayList phrase2 = new ArrayList();
+        ArrayList phrase3 = new ArrayList();
+        Pattern pattern = Pattern.compile("\"([^\"]*)\"|(\\S+)");
+        Matcher matcher = pattern.matcher(query);
+        while (matcher.find()) {
+            if (matcher.group(1) != null) {
+                // Term surrounded by double quotes
+                String text = matcher.group(1);
+                if (text.split(" ").length == 1){
+                    text = stemmer.stem(text);
+                    words.add(text);
+                }
+                else if (text.split(" ").length == 2) {
+                    String[] phrase2words = text.split(" ");
+                    phrase2words[0] = stemmer.stem(phrase2words[0]);
+                    phrase2words[1] = stemmer.stem(phrase2words[1]);
+                    if (phrase2words[0].length() == 0){
+                        words.add(phrase2words[1]);
+                    }
+                    else if (phrase2words[1].length() == 0){
+                        words.add(phrase2words[0]);
+                    }
+                    else {
+                        phrase2.add(String.join(" ", phrase2words).strip());
+                    }
+                }
+                else if (text.split(" ").length == 3) {
+                    String[] phrase2words = text.split(" ");
+                    phrase2words[0] = stemmer.stem(phrase2words[0]);
+                    phrase2words[1] = stemmer.stem(phrase2words[1]);
+                    phrase2words[2] = stemmer.stem(phrase2words[2]);
+                    String processedText = String.join(" ", phrase2words).strip();
+                    if (processedText.split(" ").length == 1){
+                        words.add(processedText);
+                    }
+                    else if (processedText.split(" ").length == 2){
+                        phrase2.add(processedText);
+                    }
+                    else {
+                        phrase3.add(processedText);
+                    }
+                }
+            } else {
+                String text = matcher.group(2);
+                words.add(text);
+            }
         }
-        ArrayList phrase2 = Utils.getNGrams(words, 2);
-        ArrayList phrase3 = Utils.getNGrams(words, 3);
         Hashtable texts = new Hashtable<>();
         texts.put("words", words);
         texts.put("phrase2", phrase2);

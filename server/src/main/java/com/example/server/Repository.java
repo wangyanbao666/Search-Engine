@@ -6,6 +6,7 @@ import jdbm.htree.HTree;
 
 import java.io.IOException;
 import java.rmi.server.ExportException;
+import java.util.Hashtable;
 import java.util.Objects;
 
 @org.springframework.stereotype.Repository
@@ -63,7 +64,19 @@ public class Repository {
     private HTree docPhrase2TfIdf;
     private HTree docPhrase3TfIdf;
     private HTree subLink;
+
+    public HTree getIdWord() {
+        return idWord;
+    }
+
+    private HTree idWord;
     private HTree parentLink;
+
+    public HTree getForwardIndex() {
+        return forwardIndex;
+    }
+
+    private HTree forwardIndex;
     private RecordManager recman;
 
 
@@ -80,6 +93,8 @@ public class Repository {
         pageInfo = loadHTree("pageInfo");
         subLink = loadHTree("subLinks");
         parentLink = loadHTree("parentLinks");
+        forwardIndex = loadHTree("forwardIndex");
+        idWord = loadHTree("word_id-word");
     }
 
     public HTree loadHTree(String objectname) throws Exception {
