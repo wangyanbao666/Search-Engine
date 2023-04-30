@@ -8,6 +8,7 @@ import {
   Route
  } from "react-router-dom";
 import Results from './components/results';
+import Login from './components/login';
 
 
 function App() {
@@ -17,6 +18,7 @@ function App() {
         <Routes>
           <Route path="/" element={<SearchPage className={'animate-charcter'}/>} />
           <Route path="/result" element={<Results/>} />
+          <Route path="/login" element={<Login/>}></Route>
         </Routes>
       </Router>
     </DataProvider>

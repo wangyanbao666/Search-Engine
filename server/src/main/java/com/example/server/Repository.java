@@ -77,6 +77,7 @@ public class Repository {
     }
 
     private HTree forwardIndex;
+    private HTree userHistory;
     private RecordManager recman;
 
 
@@ -95,17 +96,29 @@ public class Repository {
         parentLink = loadHTree("parentLinks");
         forwardIndex = loadHTree("forwardIndex");
         idWord = loadHTree("word_id-word");
+        userHistory = loadHTree("userHistory");
     }
 
     public HTree loadHTree(String objectname) throws Exception {
         HTree hashTable;
         long recid = recman.getNamedObject(objectname);
-        if (recid != 0){
-            hashTable = HTree.load(recman, recid);
+        if (objectname == "userHistory"){
+            if (recid == 0) {
+                hashTable = HTree.createInstance(recman);
+                recman.setNamedObject( objectname, hashTable.getRecid() );
+            }
+            else {
+                hashTable = HTree.load(recman, recid);
+            }
         }
-        else
-        {
-            throw new Exception("Please do web crawling first");
+        else {
+            if (recid != 0){
+                hashTable = HTree.load(recman, recid);
+            }
+            else
+            {
+                throw new Exception("Please do web crawling first");
+            }
         }
         return hashTable;
     }

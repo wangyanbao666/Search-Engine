@@ -10,15 +10,15 @@ export default function ResultBlock({info}){
     const navigate = useNavigate();
     const { setData } = useContext(DataContext);
     function request(query){
-        console.log(query)
-        $.post("http://localhost:8080/api/results", {query: query}, function(data){
+        let processedQuery = query.substring(0,query.indexOf(":"))
+        $.post("http://localhost:8080/api/results", {query: processedQuery}, function(data){
             setData(data)
             navigate("/result")
         })
     }
     return (
         <div className="block">
-            <div className="title"><a href={info.url}>Title: {info.Title}</a></div>
+            <h2 className="title"><a href={info.url}>Title: {info.Title}</a></h2>
             <div className="url"><a href={info.url}>URL: {info.url}</a></div>
             <div className="moddate">Last Modification Date: {info["Last-Modified"]}</div>
             <div className="pagesize">Size of Page: {info["Content-Length"]}</div>
