@@ -1,0 +1,38 @@
+.container {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+.resultPage {
+    height: 100vh;
+    /* background-color: lightblue; */
+}
+
+.block {
+    border-radius: 25px;
+    border: 2px solid #73AD21;
+    display: block;
+    /* text-align: center; */
+    width: 60%;
+    padding-top: 20px;
+    padding-left: 20px;
+    padding-bottom: 15px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    background-color: coral;
+    font-family: Sans-serif;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 10px 15px -3px, rgba(0, 0, 0, 0.05) 0px 4px 6px -2px;
+    font-size: 20px;
+}
+
+.block div {
+    margin-bottom: 5px;
+}
+
+.title {
+    padding-bottom: 10px;
+    font-size: 30px;
+}
+
+
