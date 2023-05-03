@@ -54,6 +54,9 @@ body, html {
   -o-transition: all 0.4s;
   -moz-transition: all 0.4s;
 } */
+a {
+  cursor: pointer;
+}
 
 a:focus {
 	outline: none !important;

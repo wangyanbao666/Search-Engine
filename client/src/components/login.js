@@ -1,17 +1,75 @@
 import $ from "jquery"
-import { useEffect, useRef } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
+import { DataContext } from "./dataContext";
+import { useNavigate } from "react-router-dom";
+
 export default function Login(){
 
+	const navigate = useNavigate()
 	const email = useRef(null)
 	const password = useRef(null)
+	const [isRegister, setIsRegister] = useState(false);
+	const register = useRef(null)
+	const login = useRef(null)
+	const loginButton = useRef(null)
+
+	const [loginVisibility, setLoginVisibility] = useState(false)
+	const [registerVisibility, setRegisterVisibility] = useState(true)
+
+	const {setUsername} = useContext(DataContext)
 
     function handleSubmit(event){
         event.preventDefault(); // 👈️ prevent page refresh
 		let emailValue = email.current.value
 		let passwordValue = password.current.value
 		console.log(emailValue, passwordValue)
+		if (isRegister){
+			$.post("http://localhost:8080/register",{username:emailValue, password:passwordValue}, (success)=>{
+				if (success){
+					changeRegister()
+					alert(`Register Successfully, Welcome ${emailValue}!`)
+				}
+				else{
+					alert(`The username has been registered, please choose another one.`)
+				}
+			})
+		}
+		else {
+			$.post("http://localhost:8080/login",{username:emailValue, password:passwordValue}, (success)=>{
+				if (success){
+					setUsername(emailValue)
+					navigate("/")
+					alert(`Login Successfully, Welcome ${emailValue}!`)
+				}
+				else{
+					alert(`The username or password is not correct.`)
+				}
+			})
+		}
         return false;
     }
+
+
+	function changeRegister(){
+		console.log(isRegister)
+		if (isRegister){
+			console.log(1)
+			setIsRegister(false)
+			let button = document.getElementById("loginButton")
+			button.textContent = "Login"
+			setLoginVisibility(false)
+			setRegisterVisibility(true)
+		}
+		else {
+			console.log(2)
+			setIsRegister(true)
+			console.log(isRegister)
+			let button = document.getElementById("loginButton")
+			button.textContent = "Register"
+			setLoginVisibility(true)
+			setRegisterVisibility(false)
+		}
+	}
 
 	useEffect(() => {
 		/*==================================================================
@@ -62,7 +120,7 @@ export default function Login(){
 
 					<div className="wrap-input100 validate-input" data-validate = "Valid email is: a@b.c">
 						<input className="input100" type="text" name="email" ref={email}></input>
-						<span className="focus-input100" data-placeholder="Email"></span>
+						<span className="focus-input100" data-placeholder="Username"></span>
 					</div>
 
 					<div className="wrap-input100 validate-input" data-validate="Enter password">
@@ -76,19 +134,28 @@ export default function Login(){
 					<div className="container-login100-form-btn">
 						<div className="wrap-login100-form-btn">
 							<div className="login100-form-bgbtn"></div>
-							<button className="login100-form-btn">
+							<button className="login100-form-btn" ref={loginButton} id="loginButton">
 								Login
 							</button>
 						</div>
 					</div>
 
-					<div className="text-center p-t-115">
+					<div className="text-center p-t-115" style={{display:registerVisibility?"block":"none"}} id="register">
 						<span className="txt1">
 							Don't have an account?
 						</span>
 
-						<a className="txt2" href="#">
+						<a className="txt2" onClick={changeRegister}>
 							Sign Up
+						</a>
+					</div>
+					<div className="text-center p-t-115" style={{display:loginVisibility?"block":"none"}} id="login">
+						<span className="txt1">
+							Already have an account?
+						</span>
+
+						<a className="txt2" onClick={changeRegister}>
+							Login
 						</a>
 					</div>
 				</form>

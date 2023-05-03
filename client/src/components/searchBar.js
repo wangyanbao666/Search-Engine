@@ -19,6 +19,10 @@ export default function SearchBar({ className }){
         })
         return false;
     }
+
+    function viewHistory(){
+        navigate("/history")
+    }
     
     return (
         <div>
@@ -26,6 +30,7 @@ export default function SearchBar({ className }){
                 <input type="text" id="search" placeholder="Search for..." required></input>
                 <input type="submit" value="go" id="submit"></input>
             </form>
+            <button onClick={viewHistory} className="button-30">View Search History</button>
         </div>
     )
 }
