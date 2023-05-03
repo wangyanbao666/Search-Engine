@@ -5,7 +5,8 @@ import jdbm.RecordManagerFactory;
 import jdbm.htree.HTree;
 
 import java.io.IOException;
-import java.rmi.server.ExportException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Objects;
 
@@ -97,6 +98,38 @@ public class Repository {
         forwardIndex = loadHTree("forwardIndex");
         idWord = loadHTree("word_id-word");
         userHistory = loadHTree("userHistory");
+    }
+
+    public boolean checkExist(String username, String password) throws IOException {
+        if (userHistory.get(username) == null){
+            return false;
+        }
+        return true;
+    }
+
+    public boolean checkPassword(String username, String password) throws IOException {
+        if (!checkExist(username, password)){
+            return false;
+        }
+        else {
+            String truePassword = (String) ((Hashtable) (userHistory.get(username))).get("password");
+            return Objects.equals(truePassword, password);
+        }
+    }
+
+    public boolean createUser(String username, String password) throws IOException {
+        if (checkExist(username, password)){
+            return false;
+        }
+        else {
+            Hashtable newUser = new Hashtable();
+            newUser.put("password", password);
+            Hashtable history = new Hashtable();
+            newUser.put("history", history);
+            userHistory.put(username, newUser);
+            recman.commit();
+            return true;
+        }
     }
 
     public HTree loadHTree(String objectname) throws Exception {
