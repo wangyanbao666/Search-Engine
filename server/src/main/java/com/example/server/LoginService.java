@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Hashtable;
 
 @Service
 public class LoginService {
@@ -21,4 +22,8 @@ public class LoginService {
         return repository.checkPassword(username, password);
     }
 
+    public Hashtable fetchUserHistory(String username) throws IOException {
+        Hashtable userInfo = repository.fetchUserHistory(username);
+        return userInfo;
+    }
 }

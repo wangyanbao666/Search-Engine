@@ -79,7 +79,7 @@ public class Repository {
 
     private HTree forwardIndex;
     private HTree userHistory;
-    private RecordManager recman;
+    private static RecordManager recman;
 
 
     Repository() throws Exception {
@@ -102,6 +102,7 @@ public class Repository {
 
     public boolean checkExist(String username, String password) throws IOException {
         if (userHistory.get(username) == null){
+            System.out.println("username has been created");
             return false;
         }
         return true;
@@ -117,6 +118,12 @@ public class Repository {
         }
     }
 
+    private void clearUserHistory() throws IOException {
+        HTree hashTable = HTree.createInstance(recman);
+        recman.setNamedObject( "userHistory", hashTable.getRecid() );
+        recman.commit();
+    }
+
     public boolean createUser(String username, String password) throws IOException {
         if (checkExist(username, password)){
             return false;
@@ -130,6 +137,24 @@ public class Repository {
             recman.commit();
             return true;
         }
+    }
+
+    public void storeHistory(String username, String keyword, ArrayList result) throws IOException {
+        Hashtable userInfo = (Hashtable) userHistory.get(username);
+        Hashtable history = (Hashtable) userInfo.get("history");
+        if (history.get(keyword) == null){
+            history.put(keyword, result);
+            userInfo.put("history", history);
+            userHistory.put(username, userInfo);
+            recman.commit();
+        }
+    }
+
+    public Hashtable fetchUserHistory(String username) throws IOException {
+        if (userHistory.get(username) != null){
+            return (Hashtable) ((Hashtable) userHistory.get(username)).get("history");
+        }
+        return null;
     }
 
     public HTree loadHTree(String objectname) throws Exception {
@@ -154,6 +179,11 @@ public class Repository {
             }
         }
         return hashTable;
+    }
+
+    public static void main(String[] args) throws Exception {
+        Repository r = new Repository();
+        r.clearUserHistory();
     }
 
 }

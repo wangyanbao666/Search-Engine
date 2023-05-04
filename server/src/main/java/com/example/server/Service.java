@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 public class Service {
     private final Repository repository;
     private StopStem stemmer;
-    @Autowired
+
     Service(Repository repository) throws IOException {
         this.repository = repository;
         stemmer = new StopStem("C:\\Users\\29836\\OneDrive\\Desktop\\search engine\\project\\server\\src\\main\\java\\core\\stopwords.txt");
@@ -231,7 +231,7 @@ public class Service {
                 String word = (String) idWord.get(id);
                 keywords.add(String.format("%s: %d",word,wordsCount.get(id)));
             }
-            System.out.println(keywords);
+//            System.out.println(keywords);
             ArrayList<String> sublinks = new ArrayList<String>((Vector)subLinks.get(urlId));
             String link = (String) idUrl.get(urlId);
             ArrayList<Integer> parentlinksid = (ArrayList<Integer>) parentLinks.get(link);
@@ -318,6 +318,13 @@ public class Service {
         texts.put("phrase3", phrase3);
         return texts;
     }
+
+    public void storeUserHistory(String username, String keyword, ArrayList history) throws IOException {
+        if (!Objects.equals(username, "")){
+            repository.storeHistory(username, keyword, history);
+        }
+    }
+
 
     private int checkMatch(ArrayList<String > words, String title){
         int count = 0;
