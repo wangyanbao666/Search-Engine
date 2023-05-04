@@ -12,11 +12,12 @@ export default function Login(){
 	const register = useRef(null)
 	const login = useRef(null)
 	const loginButton = useRef(null)
+	const {setIsLoggedIn} = useContext(DataContext)
 
 	const [loginVisibility, setLoginVisibility] = useState(false)
 	const [registerVisibility, setRegisterVisibility] = useState(true)
 
-	const {setUsername} = useContext(DataContext)
+	const {setUsername, setHistory, history} = useContext(DataContext)
 
     function handleSubmit(event){
         event.preventDefault(); // 👈️ prevent page refresh
@@ -25,6 +26,7 @@ export default function Login(){
 		console.log(emailValue, passwordValue)
 		if (isRegister){
 			$.post("http://localhost:8080/register",{username:emailValue, password:passwordValue}, (success)=>{
+
 				if (success){
 					changeRegister()
 					alert(`Register Successfully, Welcome ${emailValue}!`)
@@ -35,9 +37,13 @@ export default function Login(){
 			})
 		}
 		else {
-			$.post("http://localhost:8080/login",{username:emailValue, password:passwordValue}, (success)=>{
+			$.post("http://localhost:8080/login",{username:emailValue, password:passwordValue}, (data)=>{
+				const success = data["success"]
+				const userHistory = data["history"]
 				if (success){
 					setUsername(emailValue)
+					setHistory(userHistory)
+					setIsLoggedIn(true)
 					navigate("/")
 					alert(`Login Successfully, Welcome ${emailValue}!`)
 				}
@@ -48,6 +54,10 @@ export default function Login(){
 		}
         return false;
     }
+
+	function backToMain(){
+		navigate("/")
+	}
 
 
 	function changeRegister(){
@@ -110,6 +120,7 @@ export default function Login(){
             <div className="limiter">
 		<div className="container-login100">
 			<div className="wrap-login100">
+
 				<form className="login100-form validate-form" onSubmit={handleSubmit}>
 					<span className="login100-form-title p-b-26">
 						Welcome
@@ -139,6 +150,16 @@ export default function Login(){
 							</button>
 						</div>
 					</div>
+
+					<div className="text-center">
+						<button className="button-30" onClick={backToMain} style={
+							{
+								marginTop:"40px",
+							}
+						}>Back to main page</button>
+					</div>
+
+
 
 					<div className="text-center p-t-115" style={{display:registerVisibility?"block":"none"}} id="register">
 						<span className="txt1">

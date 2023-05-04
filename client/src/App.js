@@ -9,6 +9,7 @@ import {
  } from "react-router-dom";
 import Results from './components/results';
 import Login from './components/login';
+import SearchHistory from './components/searchHistory';
 
 
 function App() {
@@ -19,6 +20,7 @@ function App() {
           <Route path="/" element={<SearchPage className={'animate-charcter'}/>} />
           <Route path="/result" element={<Results/>} />
           <Route path="/login" element={<Login/>}></Route>
+          <Route path="/history" element={<SearchHistory/>}></Route>
         </Routes>
       </Router>
     </DataProvider>

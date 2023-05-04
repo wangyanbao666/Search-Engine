@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 
 export default function SearchBar({ className }){
-    const { setData } = useContext(DataContext);
+    const { setData,username,setHistory,history } = useContext(DataContext);
     const navigate = useNavigate();
 
     function handleSubmit(event){
@@ -13,8 +13,11 @@ export default function SearchBar({ className }){
         let searchBar = document.getElementById("search")
         let query = searchBar.value
         // console.log(query)
-        $.post("http://localhost:8080/api/results", {query: query}, function(data){
+        $.post("http://localhost:8080/api/results", {query: query, username: username}, function(data){
             setData(data)
+            console.log(history)
+            history[query] = data
+            setHistory(history)
             navigate("/result")
         })
         return false;

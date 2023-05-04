@@ -4,6 +4,7 @@ import './css/index.css';
 import './css/searchBar.css'
 import './css/block.css'
 import './css/expandList.css'
+import "./css/sidebar.css"
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
