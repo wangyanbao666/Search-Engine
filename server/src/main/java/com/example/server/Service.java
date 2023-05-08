@@ -274,8 +274,8 @@ public class Service {
                 // Term surrounded by double quotes
                 String text = matcher.group(1);
                 if (text.split(" ").length == 1){
-                    text = stemmer.stem(text);
-                    words.add(text);
+                    String newText = stemmer.stem(text);
+                    words.add(newText);
                 }
                 else if (text.split(" ").length == 2) {
                     String[] phrase2words = text.split(" ");
@@ -309,13 +309,17 @@ public class Service {
                 }
             } else {
                 String text = matcher.group(2);
-                words.add(text);
+                String newText = stemmer.stem(text);
+                words.add(newText);
             }
         }
         Hashtable texts = new Hashtable<>();
         texts.put("words", words);
         texts.put("phrase2", phrase2);
         texts.put("phrase3", phrase3);
+        System.out.println(words);
+        System.out.println(phrase2);
+        System.out.println(phrase3);
         return texts;
     }
 
